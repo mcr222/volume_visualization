@@ -307,10 +307,10 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         VectorMath.setVector(viewVec, viewMatrix[2], viewMatrix[6], viewMatrix[10]);
         VectorMath.setVector(uVec, viewMatrix[0], viewMatrix[4], viewMatrix[8]);
         VectorMath.setVector(vVec, viewMatrix[1], viewMatrix[5], viewMatrix[9]);
-        System.out.println("dimensions");
+        /*System.out.println("dimensions");
         System.out.println(volume.getDimX());
         System.out.println(volume.getDimY());
-        System.out.println(volume.getDimZ());
+        System.out.println(volume.getDimZ());*/
         // sample on a plane through the origin of the volume data
         double max = volume.getMaximum();
         TFColor voxelColor = new TFColor();
