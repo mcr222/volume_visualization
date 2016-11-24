@@ -92,18 +92,96 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     
     private class PointsInLine {
         
-        private double[] q0;
-        private double[] q1;
+        private double[] q0=null;
+        private double[] q1=null;
         
         public PointsInLine(double[] viewVec, double[] uVec, double[] vVec, int i, int j){
-            
+            int imageCenter = image.getWidth() / 2;
+            double[] volumeCenter = new double[3];
+            VectorMath.setVector(volumeCenter, volume.getDimX() / 2, volume.getDimY() / 2, volume.getDimZ() / 2);
+            double[] pointLine = {uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter) + volumeCenter[0],
+                uVec[1] * (i - imageCenter) + vVec[1] * (j - imageCenter)+ volumeCenter[1],
+                uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter)+ volumeCenter[2]};
+            /*System.out.println("pointLine");
+            System.out.println(pointLine[0]);
+            System.out.println(pointLine[1]);
+            System.out.println(pointLine[2]);
+            System.out.println("viewVec");
+            System.out.println(viewVec[0]);
+            System.out.println(viewVec[1]);
+            System.out.println(viewVec[2]);*/
+            double maxX = volume.getDimX();
+            double maxY = volume.getDimY();
+            double maxZ = volume.getDimZ();
+            double[][] normalVectors = {{1,0,0},{0,1,0},{0,0,1}};
+            double[][] pointsPlanes = {{0,0,0},{maxX,maxY,maxZ}};
+            double[] intersectionPoint;
+            for(int ni=0; ni<3; ++ni) {
+                for(int nj=0; nj<2; ++nj) {
+                    intersectionPoint = findIntersection(pointLine,viewVec,pointsPlanes[nj],normalVectors[ni]);
+                    /*System.out.println("intersectionPoint");
+                    System.out.println(intersectionPoint);*/
+                    
+                    if(intersectionPoint!=null) {
+                        if(q0==null) {
+                            q0 = intersectionPoint;
+                        } else {
+                            double[] distVectq0 = {q0[0]-pointLine[0],q0[1]-pointLine[1],q0[2]-pointLine[2]};
+                            double[] distVectint= {intersectionPoint[0]-pointLine[0],intersectionPoint[1]-pointLine[1],intersectionPoint[2]-pointLine[2]};
+                            if(scalarMultiplication(distVectq0,distVectq0)>scalarMultiplication(distVectint,distVectint)) {
+                                q1 = q0;
+                                q0 = intersectionPoint;
+                            } else {
+                                q1 = intersectionPoint;
+                            }
+                        }
+                    }
+                }
+            }
+            /*System.out.println("q0");
+            System.out.println(q0);
+            System.out.println("q1");
+            System.out.println(q1);*/
+        }
+        
+        public boolean isThereIntersection() {
+            if(q0==null && q1==null) {
+                //System.out.println("no intersection");
+            }
+            return q0!=null && q1!=null;
+        }
+        
+        private double scalarMultiplication(double[] x1, double[] x2) {
+            double mult = 0;
+            for(int i=0;i<3;++i){
+                mult += x1[i]*x2[i];
+            }
+            return mult;
+        }
+        
+        private double[] findIntersection(double[] pointLine, double[] vectorLine, double[] pointPlane, double[] normalPlane){
+            double den = scalarMultiplication(vectorLine, normalPlane);
+            if(den==0) {
+                return null;
+            }
+            double[] diff = {pointPlane[0]-pointLine[0],pointPlane[1]-pointLine[1],pointPlane[2]-pointLine[2]};
+            double d = scalarMultiplication(diff,normalPlane)/den;
+            double[] intersectionPoint = {d*vectorLine[0]+pointLine[0],d*vectorLine[1]+pointLine[1],d*vectorLine[2]+pointLine[2]};
+            if(coordinatesInRange(intersectionPoint)) {
+                return intersectionPoint;
+            }
+            return null;
         }
         
         public short getPointInLine(double k){
             double[] pointsInLine = new double[3];
-            pointsInLine[0] = (1-k)*q0[0]+k*q1[0];
-            pointsInLine[1] = (1-k)*q0[1]+k*q1[1];
-            pointsInLine[2] = (1-k)*q0[2]+k*q1[2];
+            pointsInLine[0] = q0[0]+k*(q1[0]-q0[0]);
+            pointsInLine[1] = q0[1]+k*(q1[1]-q0[1]);
+            pointsInLine[2] = q0[2]+k*(q1[2]-q0[2]);
+            /*System.out.println(k);
+            System.out.println(coordinatesInRange(q0));
+            System.out.println(coordinatesInRange(q1));
+            System.out.println(coordinatesInRange(pointsInLine));*/
             return getVoxel(pointsInLine);
         }
     }
@@ -123,17 +201,25 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         int x = (int) Math.floor(coord[0]);
         int y = (int) Math.floor(coord[1]);
         int z = (int) Math.floor(coord[2]);
-
-        return volume.getVoxel(x, y, z);
+        try {
+            return volume.getVoxel(x, y, z);
+        }catch(Exception e){
+            /*System.out.println("wrong value");
+            System.out.println(x);
+            System.out.println(y);
+            System.out.println(z);*/
+            
+            return 0;
+        }
     }
 
 
     void slicer(double[] viewMatrix) {
-        System.out.println("ViewMatrix");
+        /*System.out.println("ViewMatrix");
         for(int i=0;i<viewMatrix.length;i++){
             System.out.print(viewMatrix[i]+" ");
             
-        }
+        }*/
         // clear image
         for (int j = 0; j < image.getHeight(); j++) {
             for (int i = 0; i < image.getWidth(); i++) {
@@ -149,7 +235,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         VectorMath.setVector(viewVec, viewMatrix[2], viewMatrix[6], viewMatrix[10]);
         VectorMath.setVector(uVec, viewMatrix[0], viewMatrix[4], viewMatrix[8]);
         VectorMath.setVector(vVec, viewMatrix[1], viewMatrix[5], viewMatrix[9]);
-        System.out.println("viewVec");
+        /*System.out.println("viewVec");
         for(int i=0;i<viewVec.length;i++){
             System.out.print(viewVec[i]+" ");
         }
@@ -160,7 +246,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         System.out.println("vVec");
         for(int i=0;i<vVec.length;i++){
             System.out.print(vVec[i]+" ");
-        }
+        }*/
         // image is square
         int imageCenter = image.getWidth() / 2;
 
@@ -221,62 +307,29 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         VectorMath.setVector(viewVec, viewMatrix[2], viewMatrix[6], viewMatrix[10]);
         VectorMath.setVector(uVec, viewMatrix[0], viewMatrix[4], viewMatrix[8]);
         VectorMath.setVector(vVec, viewMatrix[1], viewMatrix[5], viewMatrix[9]);
-        
-        // image is square
-        int imageCenter = image.getWidth() / 2;
-
-        double[] pixelCoordCent = new double[3];
-        double[] pixelCoord = new double[3];
-        double[] volumeCenter = new double[3];
-        VectorMath.setVector(volumeCenter, volume.getDimX() / 2, volume.getDimY() / 2, volume.getDimZ() / 2);
-
+        System.out.println("dimensions");
+        System.out.println(volume.getDimX());
+        System.out.println(volume.getDimY());
+        System.out.println(volume.getDimZ());
         // sample on a plane through the origin of the volume data
         double max = volume.getMaximum();
         TFColor voxelColor = new TFColor();
-        int max_val,val,k;
-        boolean inRange;
+        int max_val,val;
+        double k;
+        double kspacing=0.01;
+        PointsInLine pointsInLine;
 
         for (int j = 0; j < image.getHeight(); j++) {
             for (int i = 0; i < image.getWidth(); i++) {
-                max_val=0;
+                pointsInLine = new PointsInLine(viewVec,uVec,vVec,i,j);
                 k=0;
-                inRange=true;
-                pixelCoordCent[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
-                        + volumeCenter[0];
-                pixelCoordCent[1] = uVec[1] * (i - imageCenter) + vVec[1] * (j - imageCenter)
-                        + volumeCenter[1];
-                pixelCoordCent[2] = uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter)
-                        + volumeCenter[2];
-
-                while(inRange) {
-                    pixelCoord[0] = pixelCoordCent[0] + viewVec[0]*k;
-                    pixelCoord[1] = pixelCoordCent[1] + viewVec[1]*k;
-                    pixelCoord[2] = pixelCoordCent[2] + viewVec[2]*k;
-                    
-                    inRange = coordinatesInRange(pixelCoord);
-                    val = getVoxel(pixelCoord);
+                max_val = 0;
+                while(pointsInLine.isThereIntersection() &&  k<=1) {
+                    val = pointsInLine.getPointInLine(k);
                     if(val > max_val) {
-                        max_val = val;
-                        
+                        max_val = val;   
                     }
-                    
-                    k=k+1;
-                }
-                inRange=true;
-                k=0;
-                while(inRange) {
-                    pixelCoord[0] = pixelCoordCent[0] - viewVec[0]*k;
-                    pixelCoord[1] = pixelCoordCent[1] - viewVec[1]*k;
-                    pixelCoord[2] = pixelCoordCent[2] - viewVec[2]*k;
-                    
-                    inRange = coordinatesInRange(pixelCoord);
-                    val = getVoxel(pixelCoord);
-                    if(val > max_val) {
-                        max_val = val;
-                        
-                    }
-                    
-                    k=k+1;
+                    k=k+kspacing;
                 }
                 
                 // Map the intensity to a grey value by linear scaling
