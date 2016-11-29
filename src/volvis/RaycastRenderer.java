@@ -187,33 +187,42 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         }
     }
     
-    
     public boolean coordinatesInRange(double[] coord) {
         return !(coord[0] < 0 || coord[0] > volume.getDimX() || coord[1] < 0 || coord[1] > volume.getDimY()
                 || coord[2] < 0 || coord[2] > volume.getDimZ());
     }
     
     short getVoxel(double[] coord) {
-
-        if (!coordinatesInRange(coord)) {
+        if (!coordinatesInRange(coord)) { 
             return 0;
         }
-
-        int x = (int) Math.floor(coord[0]);
-        int y = (int) Math.floor(coord[1]);
-        int z = (int) Math.floor(coord[2]);
+        int xf = (int) Math.floor(coord[0]);
+        int yf = (int) Math.floor(coord[1]);
+        int zf = (int) Math.floor(coord[2]);
+        int xc = (int) Math.ceil(coord[0]);
+        int yc = (int) Math.ceil(coord[1]);
+        int zc = (int) Math.ceil(coord[2]);
+        double alpha=(coord[0]-xf);
+        double beta=(coord[1]-yf);
+        double gamma=(coord[2]-zf);
         try {
-            return volume.getVoxel(x, y, z);
+            short valx0=volume.getVoxel(xf,yf,zf);
+            short valx1=volume.getVoxel(xc,yf,zf);
+            short valx2=volume.getVoxel(xf,yc,zf);
+            short valx3=volume.getVoxel(xc,yc,zf);
+            short valx4=volume.getVoxel(xf,yf,zc);
+            short valx5=volume.getVoxel(xc,yf,zc);
+            short valx6=volume.getVoxel(xf,yc,zc);
+            short valx7=volume.getVoxel(xf,yc,zc);
+            double s=((1-alpha)*(1-beta)*(1-gamma)*valx0)+((alpha)*(1-beta)*(1-gamma)*valx1)
+                +((1-alpha)*(beta)*(1-gamma)*valx2)+((alpha)*(beta)*(1-gamma)*valx3)
+                +((1-alpha)*(1-beta)*(gamma)*valx4)+((alpha)*(1-beta)*(gamma)*valx5)
+                +((1-alpha)*(beta)*(gamma)*valx6)+((alpha)*(beta)*(gamma)*valx7);    
+            return (short)s;
         }catch(Exception e){
-            /*System.out.println("wrong value");
-            System.out.println(x);
-            System.out.println(y);
-            System.out.println(z);*/
-            
             return 0;
         }
     }
-
 
     void slicer(double[] viewMatrix) {
         /*System.out.println("ViewMatrix");
@@ -236,18 +245,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         VectorMath.setVector(viewVec, viewMatrix[2], viewMatrix[6], viewMatrix[10]);
         VectorMath.setVector(uVec, viewMatrix[0], viewMatrix[4], viewMatrix[8]);
         VectorMath.setVector(vVec, viewMatrix[1], viewMatrix[5], viewMatrix[9]);
-        /*System.out.println("viewVec");
-        for(int i=0;i<viewVec.length;i++){
-            System.out.print(viewVec[i]+" ");
-        }
-        System.out.println("uVec");
-        for(int i=0;i<uVec.length;i++){
-            System.out.print(uVec[i]+" ");
-        }
-        System.out.println("vVec");
-        for(int i=0;i<vVec.length;i++){
-            System.out.print(vVec[i]+" ");
-        }*/
         // image is square
         int imageCenter = image.getWidth() / 2;
 
@@ -258,7 +255,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         // sample on a plane through the origin of the volume data
         double max = volume.getMaximum();
         TFColor voxelColor = new TFColor();
-
         
         for (int j = 0; j < image.getHeight(); j++) {
             for (int i = 0; i < image.getWidth(); i++) {
@@ -351,8 +347,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 image.setRGB(i, j, pixelColor);
             }
         }
-
     }
+    
     void compositing(double[] viewMatrix) {
         // clear image
         for (int j = 0; j < image.getHeight(); j++) {
@@ -413,7 +409,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 image.setRGB(i, j, pixelColor);
             }
         }
-
     }
 
     private void drawBoundingBox(GL2 gl) {
@@ -496,7 +491,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         }
         else{
             compositing(viewMatrix); 
-                }
+        }
         
         long endTime = System.currentTimeMillis();
         double runningTime = (endTime - startTime);
