@@ -114,8 +114,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             double maxX = volume.getDimX();
             double maxY = volume.getDimY();
             double maxZ = volume.getDimZ();
-            double[][] normalVectors = {{1,0,0},{0,1,0},{0,0,1}};
-            double[][] pointsPlanes = {{0,0,0},{maxX,maxY,maxZ}};
+            double[][] normalVectors = {{1.0,0.0,0.0},{0.0,1.0,0.0},{0.0,0.0,1.0}};
+            double[][] pointsPlanes = {{0.0,0.0,0.0},{maxX,maxY,maxZ}};
             double[] intersectionPoint;
             for(int ni=0; ni<3; ++ni) {
                 for(int nj=0; nj<2; ++nj) {
@@ -188,8 +188,10 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     }
     
     public boolean coordinatesInRange(double[] coord) {
-        return !(coord[0] < 0 || coord[0] > volume.getDimX() || coord[1] < 0 || coord[1] > volume.getDimY()
-                || coord[2] < 0 || coord[2] > volume.getDimZ());
+        double error=0.0000001;
+        return !(coord[0] < -error || coord[0] > volume.getDimX()+error || 
+                coord[1] < -error || coord[1] > volume.getDimY()+error
+                || coord[2] < -error || coord[2] > volume.getDimZ()+error);
     }
     
     short getVoxel(double[] coord) {
@@ -213,7 +215,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             short valx4=volume.getVoxel(xf,yf,zc);
             short valx5=volume.getVoxel(xc,yf,zc);
             short valx6=volume.getVoxel(xf,yc,zc);
-            short valx7=volume.getVoxel(xf,yc,zc);
+            short valx7=volume.getVoxel(xc,yc,zc);
             double s=((1-alpha)*(1-beta)*(1-gamma)*valx0)+((alpha)*(1-beta)*(1-gamma)*valx1)
                 +((1-alpha)*(beta)*(1-gamma)*valx2)+((alpha)*(beta)*(1-gamma)*valx3)
                 +((1-alpha)*(1-beta)*(gamma)*valx4)+((alpha)*(1-beta)*(gamma)*valx5)
@@ -315,9 +317,9 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         double k;
         double kspacing=0.01;
         PointsInLine pointsInLine;
-
+        
         for (int j = 0; j < image.getHeight(); j++) {
-            for (int i = 0; i < image.getWidth(); i++) {
+            for (int i =0; i < image.getWidth(); i++) {
                 pointsInLine = new PointsInLine(viewVec,uVec,vVec,i,j);
                 k=0;
                 max_val = 0;
@@ -385,26 +387,27 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                     val = pointsInLine.getPointInLine(k);               
                     voxelColor = tFunc.getColor(val);
                     
-                    acumVoxelColor.r = voxelColor.r*(1-voxelColor.a)+voxelColor.a*acumVoxelColor.r;
-                    acumVoxelColor.g = voxelColor.g*(1-voxelColor.a)+voxelColor.a*acumVoxelColor.g;
-                    acumVoxelColor.b = voxelColor.b*(1-voxelColor.a)+voxelColor.a*acumVoxelColor.b;
-                    
+                    acumVoxelColor.r = (voxelColor.r*(voxelColor.a))+(1-voxelColor.a)*acumVoxelColor.r;
+                    acumVoxelColor.g = (voxelColor.g*(voxelColor.a))+(1-voxelColor.a)*acumVoxelColor.g;
+                    acumVoxelColor.b = (voxelColor.b*(voxelColor.a))+(1-voxelColor.a)*acumVoxelColor.b;
+                    acumVoxelColor.a=1.0;
+          
                     k=k-kspacing;
                 }
                 // Map the intensity to a grey value by linear scaling
-                voxelColor.r = acumVoxelColor.r;
-                voxelColor.g = acumVoxelColor.g;
-                voxelColor.b = acumVoxelColor.b;
-                voxelColor.a = 1;  // this makes intensity 0 completely transparent and the rest opaque
+                //voxelColor.r = acumVoxelColor.r;
+                //voxelColor.g = acumVoxelColor.g;
+                //voxelColor.b = acumVoxelColor.b;
+                //voxelColor.a = 1;  // this makes intensity 0 completely transparent and the rest opaque
                 // Alternatively, apply the transfer function to obtain a color
                 
                 
                 
                 // BufferedImage expects a pixel color packed as ARGB in an int
-                int c_alpha = voxelColor.a <= 1.0 ? (int) Math.floor(voxelColor.a * 255) : 255;
-                int c_red = voxelColor.r <= 1.0 ? (int) Math.floor(voxelColor.r * 255) : 255;
-                int c_green = voxelColor.g <= 1.0 ? (int) Math.floor(voxelColor.g * 255) : 255;
-                int c_blue = voxelColor.b <= 1.0 ? (int) Math.floor(voxelColor.b * 255) : 255;
+                int c_alpha = acumVoxelColor.a <= 1.0 ? (int) Math.floor(acumVoxelColor.a * 255) : 255;
+                int c_red = acumVoxelColor.r <= 1.0 ? (int) Math.floor(acumVoxelColor.r * 255) : 255;
+                int c_green = acumVoxelColor.g <= 1.0 ? (int) Math.floor(acumVoxelColor.g * 255) : 255;
+                int c_blue = acumVoxelColor.b <= 1.0 ? (int) Math.floor(acumVoxelColor.b * 255) : 255;
                 int pixelColor = (c_alpha << 24) | (c_red << 16) | (c_green << 8) | c_blue;
                 image.setRGB(i, j, pixelColor);
             }
