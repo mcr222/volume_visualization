@@ -97,25 +97,26 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         private double[] q1=null;
         
         public PointsInLine(double[] viewVec, double[] uVec, double[] vVec, int i, int j){
-            int imageCenter = image.getWidth() / 2;
+           findAllIntersections(viewVec, uVec, vVec, i, j);
+        }
+        
+        private void findAllIntersections(double[] viewVec, double[] uVec, double[] vVec, int i, int j){
+             int imageCenter = image.getWidth() / 2;
             double[] volumeCenter = new double[3];
             VectorMath.setVector(volumeCenter, volume.getDimX() / 2, volume.getDimY() / 2, volume.getDimZ() / 2);
             double[] pointLine = {uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter) + volumeCenter[0],
                 uVec[1] * (i - imageCenter) + vVec[1] * (j - imageCenter)+ volumeCenter[1],
                 uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter)+ volumeCenter[2]};
-            double c = volume.getDimX()/VectorMath.length(viewVec);
-            double[] viewPoint = {pointLine[0]-c*viewVec[0],pointLine[1]-c*viewVec[1],pointLine[2]-c*viewVec[2]};
-            /*System.out.println("pointLine");
-            System.out.println(pointLine[0]);
-            System.out.println(pointLine[1]);
-            System.out.println(pointLine[2]);
-            System.out.println("viewVec");
-            System.out.println(viewVec[0]);
-            System.out.println(viewVec[1]);
-            System.out.println(viewVec[2]);*/
+            
             double maxX = volume.getDimX();
             double maxY = volume.getDimY();
             double maxZ = volume.getDimZ();
+            
+            double c = Math.max(Math.max(maxX,maxY), maxZ)/VectorMath.length(viewVec);
+            //We use this point to see which of the intersections is the first from the viewers point of view
+            double[] viewPoint = {pointLine[0]-c*viewVec[0],pointLine[1]-c*viewVec[1],pointLine[2]-c*viewVec[2]};
+            
+            
             double[][] normalVectors = {{1.0,0.0,0.0},{0.0,1.0,0.0},{0.0,0.0,1.0}};
             double[][] pointsPlanes = {{0.0,0.0,0.0},{maxX,maxY,maxZ}};
             double[] intersectionPoint;
@@ -134,14 +135,11 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                                 q1 = q0;
                                 q0 = intersectionPoint;
                             }
+                            return;
                         }
                     }
                 }
             }
-            /*System.out.println("q0");
-            System.out.println(q0);
-            System.out.println("q1");
-            System.out.println(q1);*/
         }
         
         public boolean isThereIntersection() {
@@ -166,20 +164,13 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             return null;
         }
         
-        private double[] getPointInLine(double k, double[] q0, double[] q1) {
+        
+        public short getPointInLine(double k){
             double[] pointsInLine = new double[3];
             pointsInLine[0] = q0[0]+k*(q1[0]-q0[0]);
             pointsInLine[1] = q0[1]+k*(q1[1]-q0[1]);
             pointsInLine[2] = q0[2]+k*(q1[2]-q0[2]);
-            return pointsInLine;
-        }
-        
-        public short getPointInLine(double k){
-            /*System.out.println(k);
-            System.out.println(coordinatesInRange(q0));
-            System.out.println(coordinatesInRange(q1));
-            System.out.println(coordinatesInRange(pointsInLine));*/
-            return getVoxel(getPointInLine(k,q0,q1));
+            return getVoxel(pointsInLine);
         }
     }
     
