@@ -103,6 +103,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             double[] pointLine = {uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter) + volumeCenter[0],
                 uVec[1] * (i - imageCenter) + vVec[1] * (j - imageCenter)+ volumeCenter[1],
                 uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter)+ volumeCenter[2]};
+            double c = volume.getDimX()/VectorMath.length(viewVec);
+            double[] viewPoint = {pointLine[0]-c*viewVec[0],pointLine[1]-c*viewVec[1],pointLine[2]-c*viewVec[2]};
             /*System.out.println("pointLine");
             System.out.println(pointLine[0]);
             System.out.println(pointLine[1]);
@@ -127,13 +129,10 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                         if(q0==null) {
                             q0 = intersectionPoint;
                         } else if(Math.abs(q0[0]-intersectionPoint[0])>0.01 || Math.abs(q0[1]-intersectionPoint[1])>0.01 || Math.abs(q0[2]-intersectionPoint[2])>0.01) {
-                            double[] distVectq0 = {q0[0]-pointLine[0],q0[1]-pointLine[1],q0[2]-pointLine[2]};
-                            double[] distVectint= {intersectionPoint[0]-pointLine[0],intersectionPoint[1]-pointLine[1],intersectionPoint[2]-pointLine[2]};
-                            if(scalarMultiplication(distVectq0,distVectq0)>scalarMultiplication(distVectint,distVectint)) {
+                            q1 = intersectionPoint;
+                            if(VectorMath.distance(q0, viewPoint)>VectorMath.distance(q1, viewPoint)) {
                                 q1 = q0;
                                 q0 = intersectionPoint;
-                            } else {
-                                q1 = intersectionPoint;
                             }
                         }
                     }
@@ -152,21 +151,14 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             return q0!=null && q1!=null;
         }
         
-        private double scalarMultiplication(double[] x1, double[] x2) {
-            double mult = 0;
-            for(int i=0;i<3;++i){
-                mult += x1[i]*x2[i];
-            }
-            return mult;
-        }
         
         private double[] findIntersection(double[] pointLine, double[] vectorLine, double[] pointPlane, double[] normalPlane){
-            double den = scalarMultiplication(vectorLine, normalPlane);
+            double den = VectorMath.dotproduct(vectorLine, normalPlane);
             if(den==0) {
                 return null;
             }
             double[] diff = {pointPlane[0]-pointLine[0],pointPlane[1]-pointLine[1],pointPlane[2]-pointLine[2]};
-            double d = scalarMultiplication(diff,normalPlane)/den;
+            double d = VectorMath.dotproduct(diff,normalPlane)/den;
             double[] intersectionPoint = {d*vectorLine[0]+pointLine[0],d*vectorLine[1]+pointLine[1],d*vectorLine[2]+pointLine[2]};
             if(coordinatesInRange(intersectionPoint)) {
                 return intersectionPoint;
@@ -174,16 +166,20 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             return null;
         }
         
-        public short getPointInLine(double k){
+        private double[] getPointInLine(double k, double[] q0, double[] q1) {
             double[] pointsInLine = new double[3];
             pointsInLine[0] = q0[0]+k*(q1[0]-q0[0]);
             pointsInLine[1] = q0[1]+k*(q1[1]-q0[1]);
             pointsInLine[2] = q0[2]+k*(q1[2]-q0[2]);
+            return pointsInLine;
+        }
+        
+        public short getPointInLine(double k){
             /*System.out.println(k);
             System.out.println(coordinatesInRange(q0));
             System.out.println(coordinatesInRange(q1));
             System.out.println(coordinatesInRange(pointsInLine));*/
-            return getVoxel(pointsInLine);
+            return getVoxel(getPointInLine(k,q0,q1));
         }
     }
     
@@ -375,7 +371,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         TFColor voxelColor = new TFColor();
         int val= 0;
         double k;
-        double kspacing=0.01;
+        double kspacing=0.005;
         PointsInLine pointsInLine;
 
         for (int j = 0; j < image.getHeight(); j++) {
@@ -383,7 +379,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 pointsInLine = new PointsInLine(viewVec,uVec,vVec,i,j);
                 k=1;
                 TFColor acumVoxelColor = new TFColor(0,0,0,0);
-                while(pointsInLine.isThereIntersection() &&  k>0) {
+                while(pointsInLine.isThereIntersection() &&  k>=0) {
                     val = pointsInLine.getPointInLine(k);               
                     voxelColor = tFunc.getColor(val);
                     
