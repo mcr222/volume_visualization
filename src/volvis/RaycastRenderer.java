@@ -218,7 +218,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 +((1-alpha)*(beta)*(1-gamma)*valx2)+((alpha)*(beta)*(1-gamma)*valx3)
                 +((1-alpha)*(1-beta)*(gamma)*valx4)+((alpha)*(1-beta)*(gamma)*valx5)
                 +((1-alpha)*(beta)*(gamma)*valx6)+((alpha)*(beta)*(gamma)*valx7);    
-            return (short)s;
+            return (short) s;
         }catch(Exception e){
             return 0;
         }
@@ -381,7 +381,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 pointsInLine = new PointsInLine(viewVec,uVec,vVec,i,j);
                 k=1;
                 TFColor acumVoxelColor = new TFColor(0,0,0,0);
-                while(pointsInLine.isThereIntersection() &&  k>=0) {
+                while(pointsInLine.isThereIntersection() &&  k>0) {
                     val = pointsInLine.getPointInLine(k);               
                     voxelColor = tFunc.getColor(val);
                     
