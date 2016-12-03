@@ -381,10 +381,10 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         System.out.println(normalVec[0]+ " "+normalVec[1]+ " "+normalVec[2]);
         System.out.println(V[0]+ " "+V[1]+ " "+V[2]);*/
         //System.out.println(LN);
-        double accum = kamb*Iamb+kspec*Math.pow(LN, alpha);
-        voxelColor.r = accum + kdiff*LN*voxelColor.r;
-        voxelColor.g = accum + kdiff*LN*voxelColor.g;
-        voxelColor.b = accum + kdiff*LN*voxelColor.b;
+        double I = kamb+kspec*Math.pow(LN, alpha) + kdiff*LN;
+        voxelColor.r = I*voxelColor.r;
+        voxelColor.g = I*voxelColor.g;
+        voxelColor.b = I*voxelColor.b;
         
     }
     
