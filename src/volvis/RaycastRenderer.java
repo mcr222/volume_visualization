@@ -16,6 +16,7 @@ import util.TFChangeListener;
 import util.VectorMath;
 import volume.GradientVolume;
 import volume.Volume;
+import volume.VoxelGradient;
 
 /**
  *
@@ -36,16 +37,22 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         slicer,mip,compositing, transformationfunct
     }
     private raycastModes raycastMode;
+    private boolean shadowing;
 
     
     public RaycastRenderer() {
         raycastMode = raycastModes.slicer;
+        shadowing = false;
         panel = new RaycastRendererPanel(this);
         panel.setSpeedLabel("0");
     }
 
     public void setRaycastMode(raycastModes raycastMode) {
         this.raycastMode = raycastMode;
+    }
+        
+    public void changeShadowing() {
+        this.shadowing = !shadowing;
     }
     
     public void setVolume(Volume vol) {
@@ -164,12 +171,20 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         }
         
         
-        public short getPointInLine(double k){
+        private double[] getPointInLine(double k){
             double[] pointsInLine = new double[3];
             pointsInLine[0] = q0[0]+k*(q1[0]-q0[0]);
             pointsInLine[1] = q0[1]+k*(q1[1]-q0[1]);
             pointsInLine[2] = q0[2]+k*(q1[2]-q0[2]);
-            return getVoxel(pointsInLine);
+            return pointsInLine;
+        }
+        
+        private short getValPointInLine(double k){
+            return getVoxel(getPointInLine(k));
+        }
+        
+        public VoxelGradient getGradPointInLine(double k){
+            return getVoxelGradient(getPointInLine(k));
         }
     }
     
@@ -178,6 +193,22 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         return !(coord[0] < -error || coord[0] > volume.getDimX()+error || 
                 coord[1] < -error || coord[1] > volume.getDimY()+error
                 || coord[2] < -error || coord[2] > volume.getDimZ()+error);
+    }
+    
+    VoxelGradient getVoxelGradient(double[] coord) {
+        if (!coordinatesInRange(coord)) { 
+            return new VoxelGradient();
+        }
+        int xf = (int) Math.floor(coord[0]);
+        int yf = (int) Math.floor(coord[1]);
+        int zf = (int) Math.floor(coord[2]);
+        
+        try {
+            return this.gradients.getGradient(xf,yf,zf);
+        }catch(Exception e){
+            return new VoxelGradient();
+        }
+        
     }
     
     short getVoxel(double[] coord) {
@@ -250,7 +281,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 } else {
                     raycastIterator(viewVec, uVec, vVec, i, j, voxelColor);
                 }
-
+                
                 // BufferedImage expects a pixel color packed as ARGB in an int
                 int c_alpha = voxelColor.a <= 1.0 ? (int) Math.floor(voxelColor.a * 255) : 255;
                 int c_red = voxelColor.r <= 1.0 ? (int) Math.floor(voxelColor.r * 255) : 255;
@@ -277,6 +308,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     
     private void raycastIterator(double[] viewVec, double[] uVec, double[] vVec, int i , int j, TFColor voxelColor){
         int max_val,val;
+        VoxelGradient grad;
         double k;
         double kspacing=0.01;
         PointsInLine pointsInLine;
@@ -288,11 +320,14 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         k=1;
         max_val = 0;
         while(pointsInLine.isThereIntersection() &&  k>=0) {
-            val = pointsInLine.getPointInLine(k);
+            val = pointsInLine.getValPointInLine(k);
+            grad = pointsInLine.getGradPointInLine(k);
             if(raycastMode == raycastModes.mip) {
                 max_val = MIP(val, max_val, voxelColor);
             } else if (raycastMode == raycastModes.compositing) {
                 compositing(val, voxelColor);
+            } else if(raycastMode == raycastModes.transformationfunct) {
+                transformationFunction(val, grad, voxelColor, viewVec);
             }
             
             k=k-kspacing;
@@ -315,11 +350,65 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     
     private void compositing(int val, TFColor acumVoxelColor) {
         TFColor voxelColor = tFunc.getColor(val);
-
+        accumulateColor(voxelColor,acumVoxelColor);
+    }
+    
+    private void accumulateColor(TFColor voxelColor, TFColor acumVoxelColor){
         acumVoxelColor.r = (voxelColor.r*(voxelColor.a))+(1-voxelColor.a)*acumVoxelColor.r;
         acumVoxelColor.g = (voxelColor.g*(voxelColor.a))+(1-voxelColor.a)*acumVoxelColor.g;
         acumVoxelColor.b = (voxelColor.b*(voxelColor.a))+(1-voxelColor.a)*acumVoxelColor.b;
         acumVoxelColor.a=1.0;
+    }
+    
+    private void addShadow(TFColor voxelColor, VoxelGradient grad, double[] viewVec){
+        double kamb = 0.1;
+        double Iamb = 255;
+        double kdiff=0.7;
+        double kspec = 0.2;
+        double alpha = 10;
+        
+        double[] normalVec = new double[3];
+        if(grad.mag!=0) {
+            VectorMath.setVector(normalVec,grad.x/grad.mag , grad.y/grad.mag, grad.z/grad.mag);
+        } else {
+            VectorMath.setVector(normalVec,grad.x, grad.y, grad.z);
+        }
+        double[] V = new double[3];
+        VectorMath.setVector(V, -viewVec[0]/VectorMath.length(viewVec), -viewVec[1]/VectorMath.length(viewVec), -viewVec[2]/VectorMath.length(viewVec));
+        double LN = Math.abs(VectorMath.dotproduct(normalVec, V));
+        /*System.out.println("aaaaa");
+        System.out.println(grad.mag);
+        System.out.println(normalVec[0]+ " "+normalVec[1]+ " "+normalVec[2]);
+        System.out.println(V[0]+ " "+V[1]+ " "+V[2]);*/
+        //System.out.println(LN);
+        double accum = kamb*Iamb+kspec*Math.pow(LN, alpha);
+        voxelColor.r = accum + kdiff*LN*voxelColor.r;
+        voxelColor.g = accum + kdiff*LN*voxelColor.g;
+        voxelColor.b = accum + kdiff*LN*voxelColor.b;
+        
+    }
+    
+    private void transformationFunction(int val, VoxelGradient grad, TFColor acumVoxelColor, double[] viewVec) {
+        short fv = tfEditor2D.triangleWidget.baseIntensity;
+        double r = tfEditor2D.triangleWidget.radius;
+        TFColor color = tfEditor2D.triangleWidget.color;
+        TFColor voxelColor = new TFColor(color.r,color.g,color.b,0);
+        double alphav = color.a;
+        
+        double alpha = 0;
+        
+        if(grad.mag == 0 && val == fv) {
+            alpha = 1;
+        } else if(grad.mag>0 && val-r*grad.mag<=fv && val+r*grad.mag>=fv){
+            alpha = 1-(1/r)*Math.abs(fv-val)/grad.mag;
+        }
+        
+        voxelColor.a = alphav*alpha;
+        
+        if(shadowing) {
+            addShadow(voxelColor,grad, viewVec);
+        }
+        accumulateColor(voxelColor, acumVoxelColor);
     }
 
     private void drawBoundingBox(GL2 gl) {
