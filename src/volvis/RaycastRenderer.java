@@ -368,7 +368,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     
     private void addShadow(TFColor voxelColor, VoxelGradient grad, double[] viewVec){
         double kamb = 0.1;
-        double Iamb = 255;
+        double Iamb = 1;
         double kdiff=0.7;
         double kspec = 0.2;
         double alpha = 10;
@@ -387,10 +387,11 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         System.out.println(normalVec[0]+ " "+normalVec[1]+ " "+normalVec[2]);
         System.out.println(V[0]+ " "+V[1]+ " "+V[2]);*/
         //System.out.println(LN);
-        double I = kamb+kspec*Math.pow(LN, alpha) + kdiff*LN;
-        voxelColor.r = I*voxelColor.r;
-        voxelColor.g = I*voxelColor.g;
-        voxelColor.b = I*voxelColor.b;
+        double Iadd = Iamb*kamb+kspec*Math.pow(LN, alpha);
+        double Imult = kdiff*LN;
+        voxelColor.r = Iadd + Imult*voxelColor.r;
+        voxelColor.g = Iadd+ Imult*voxelColor.g;
+        voxelColor.b = Iadd + Imult*voxelColor.b;
         
     }
     
