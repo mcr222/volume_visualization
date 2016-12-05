@@ -96,11 +96,11 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
         });
 
         jSlider1.setMajorTickSpacing(1);
-        jSlider1.setMaximum(1000);
-        jSlider1.setMinimum(10);
+        jSlider1.setMaximum(20);
+        jSlider1.setMinimum(5);
         jSlider1.setMinorTickSpacing(1);
         jSlider1.setToolTipText("Resposivenes. Number of samples.");
-        jSlider1.setValue(500);
+        jSlider1.setValue(10);
         jSlider1.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 jSlider1StateChanged(evt);
@@ -108,7 +108,7 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
         });
 
         label2.setFont(new java.awt.Font("Tahoma", 0, 11)); // NOI18N
-        label2.setText("Responsiveness (from 100  to 1 samples) :");
+        label2.setText("Responsiveness (from 200 to 50 samples) :");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
