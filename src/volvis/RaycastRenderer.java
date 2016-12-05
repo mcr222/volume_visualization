@@ -32,7 +32,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     TransferFunction tFunc;
     TransferFunctionEditor tfEditor;
     TransferFunction2DEditor tfEditor2D;
-    float samples=500; // this is the responsiveness variable
+    float samples=10; // this is the responsiveness variable
     
     public enum raycastModes {
         slicer,mip,compositing, transformationfunct
@@ -50,10 +50,12 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     
     public void setSamples(float kspacing) {
         this.samples=kspacing;
+       // updateVis();
     }
     
     public void setRaycastMode(raycastModes raycastMode) {
         this.raycastMode = raycastMode;
+        //updateVis();
     }
         
     public void changeShadowing() {
@@ -159,7 +161,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             }
             return q0!=null && q1!=null;
         }
-        
         
         private double[] findIntersection(double[] pointLine, double[] vectorLine, double[] pointPlane, double[] normalPlane){
             double den = VectorMath.dotproduct(vectorLine, normalPlane);
@@ -314,7 +315,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     private void raycastIterator(double[] viewVec, double[] uVec, double[] vVec, int i , int j, TFColor voxelColor){
         int max_val,val;
         VoxelGradient grad;
-        double k=1;
+        double k=0;
         //double kspace=0.01;
         PointsInLine pointsInLine;
         voxelColor.a=0;
@@ -324,7 +325,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         pointsInLine = new PointsInLine(viewVec,uVec,vVec,i,j);
         float kspacing=(float)samples/(float)1000;
         max_val = 0;
-        while(pointsInLine.isThereIntersection() &&  k>=0) {
+        while(pointsInLine.isThereIntersection() &&  k<1) {
             val = pointsInLine.getValPointInLine(k);
             grad = pointsInLine.getGradPointInLine(k);
             if(raycastMode == raycastModes.mip) {
@@ -334,7 +335,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             } else if(raycastMode == raycastModes.transformationfunct) {
                 transformationFunction(val, grad, voxelColor, viewVec);
             }
-            k=k-kspacing;
+            k=k+kspacing;
             
         }
         
@@ -475,6 +476,10 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
     }
 
+    public void updateVis(){
+        imageIterator(viewMatrix);
+    }
+    
     @Override
     public void visualize(GL2 gl) {
 
