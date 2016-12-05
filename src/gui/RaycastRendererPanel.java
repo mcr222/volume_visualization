@@ -48,6 +48,8 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
         compositingButton = new javax.swing.JRadioButton();
         tf2dButton = new javax.swing.JRadioButton();
         shadingCheckbox = new javax.swing.JCheckBox();
+        jSlider1 = new javax.swing.JSlider();
+        label2 = new java.awt.Label();
 
         jLabel1.setText("Rendering time (ms):");
 
@@ -93,24 +95,42 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
             }
         });
 
+        jSlider1.setMajorTickSpacing(1);
+        jSlider1.setMaximum(1000);
+        jSlider1.setMinimum(10);
+        jSlider1.setMinorTickSpacing(1);
+        jSlider1.setToolTipText("Resposivenes. Number of samples.");
+        jSlider1.setValue(500);
+        jSlider1.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                jSlider1StateChanged(evt);
+            }
+        });
+
+        label2.setFont(new java.awt.Font("Tahoma", 0, 11)); // NOI18N
+        label2.setText("Responsiveness (from 100  to 1 samples) :");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(renderingSpeedLabel))
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(compositingButton)
-                        .addComponent(tf2dButton)
-                        .addComponent(mipButton)
-                        .addComponent(slicerButton)
-                        .addComponent(shadingCheckbox)))
-                .addContainerGap(339, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                        .addGroup(layout.createSequentialGroup()
+                            .addComponent(jLabel1)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(renderingSpeedLabel))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(compositingButton)
+                            .addComponent(tf2dButton)
+                            .addComponent(mipButton)
+                            .addComponent(slicerButton)
+                            .addComponent(shadingCheckbox)))
+                    .addComponent(label2, javax.swing.GroupLayout.PREFERRED_SIZE, 227, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jSlider1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(252, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -119,7 +139,11 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
                     .addComponent(renderingSpeedLabel))
-                .addGap(49, 49, 49)
+                .addGap(1, 1, 1)
+                .addComponent(label2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jSlider1, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(slicerButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(mipButton)
@@ -127,10 +151,12 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
                 .addComponent(compositingButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(tf2dButton)
-                .addGap(18, 18, 18)
+                .addGap(27, 27, 27)
                 .addComponent(shadingCheckbox)
-                .addContainerGap(137, Short.MAX_VALUE))
+                .addContainerGap(118, Short.MAX_VALUE))
         );
+
+        jSlider1.getAccessibleContext().setAccessibleName("Responsiveness");
     }// </editor-fold>//GEN-END:initComponents
 
     private void mipButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mipButtonActionPerformed
@@ -152,11 +178,19 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
     private void shadingCheckboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_shadingCheckboxActionPerformed
         renderer.changeShadowing();
     }//GEN-LAST:event_shadingCheckboxActionPerformed
+    
+    private void jSlider1StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSlider1StateChanged
+        int value=jSlider1.getValue();
+        renderer.setSamples(value);
+// TODO add your handling code here:
+    }//GEN-LAST:event_jSlider1StateChanged
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JRadioButton compositingButton;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JSlider jSlider1;
+    private java.awt.Label label2;
     private javax.swing.JRadioButton mipButton;
     private javax.swing.JLabel renderingSpeedLabel;
     private javax.swing.JCheckBox shadingCheckbox;

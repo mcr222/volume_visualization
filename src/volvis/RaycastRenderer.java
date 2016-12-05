@@ -32,6 +32,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     TransferFunction tFunc;
     TransferFunctionEditor tfEditor;
     TransferFunction2DEditor tfEditor2D;
+    float samples=500; // this is the responsiveness variable
     
     public enum raycastModes {
         slicer,mip,compositing, transformationfunct
@@ -46,7 +47,11 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         panel = new RaycastRendererPanel(this);
         panel.setSpeedLabel("0");
     }
-
+    
+    public void setSamples(float kspacing) {
+        this.samples=kspacing;
+    }
+    
     public void setRaycastMode(raycastModes raycastMode) {
         this.raycastMode = raycastMode;
     }
@@ -309,15 +314,15 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     private void raycastIterator(double[] viewVec, double[] uVec, double[] vVec, int i , int j, TFColor voxelColor){
         int max_val,val;
         VoxelGradient grad;
-        double k;
-        double kspacing=0.01;
+        double k=1;
+        //double kspace=0.01;
         PointsInLine pointsInLine;
         voxelColor.a=0;
         voxelColor.r=0;
         voxelColor.g=0;
         voxelColor.b=0;
         pointsInLine = new PointsInLine(viewVec,uVec,vVec,i,j);
-        k=1;
+        float kspacing=(float)samples/(float)1000;
         max_val = 0;
         while(pointsInLine.isThereIntersection() &&  k>=0) {
             val = pointsInLine.getValPointInLine(k);
@@ -329,10 +334,10 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             } else if(raycastMode == raycastModes.transformationfunct) {
                 transformationFunction(val, grad, voxelColor, viewVec);
             }
-            
             k=k-kspacing;
+            
         }
-
+        
     }
 
     private int MIP(int val, int max_val, TFColor voxelColor) {
