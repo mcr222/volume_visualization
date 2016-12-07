@@ -12,6 +12,8 @@ import gui.RaycastRendererPanel;
 import gui.TransferFunction2DEditor;
 import gui.TransferFunctionEditor;
 import java.awt.image.BufferedImage;
+import java.util.Timer;
+import java.util.TimerTask;
 import util.TFChangeListener;
 import util.VectorMath;
 import volume.GradientVolume;
@@ -33,6 +35,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     TransferFunctionEditor tfEditor;
     TransferFunction2DEditor tfEditor2D;
     float samples=10; // this is the responsiveness variable
+    private Timer timer = null;
     
     public enum raycastModes {
         slicer,mip,compositing, transformationfunct
@@ -50,16 +53,17 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     
     public void setSamples(float kspacing) {
         this.samples=kspacing;
-       // updateVis();
+        updateVis();
     }
     
     public void setRaycastMode(raycastModes raycastMode) {
         this.raycastMode = raycastMode;
-        //updateVis();
+        updateVis();
     }
         
     public void changeShadowing() {
         this.shadowing = !shadowing;
+        updateVis();
     }
     
     public void setVolume(Volume vol) {
@@ -479,7 +483,17 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     }
 
     public void updateVis(){
-        imageIterator(viewMatrix);
+        if(timer!=null) {
+            timer.cancel();
+        }
+        timer = new Timer();
+        timer.schedule(new TimerTask(){
+            @Override
+            public void run() {
+                changed();
+            }
+            
+        }, 200);
     }
     
     @Override
