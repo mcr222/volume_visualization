@@ -367,32 +367,33 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     }
     
     private void addShadow(TFColor voxelColor, VoxelGradient grad, double[] viewVec){
-        double kamb = 0.1;
-        double Iamb = 1;
-        double kdiff=0.7;
-        double kspec = 0.2;
-        double alpha = 10;
-        
-        double[] normalVec = new double[3];
-        if(grad.mag!=0) {
-            VectorMath.setVector(normalVec,grad.x/grad.mag , grad.y/grad.mag, grad.z/grad.mag);
-        } else {
-            VectorMath.setVector(normalVec,grad.x, grad.y, grad.z);
+        if(voxelColor.a!=0) {
+            double kamb = 0.1;
+            double Iamb = 1;
+            double kdiff=0.7;
+            double kspec = 0.2;
+            double alpha = 10;
+
+            double[] normalVec = new double[3];
+            if(grad.mag!=0) {
+                VectorMath.setVector(normalVec,grad.x/grad.mag , grad.y/grad.mag, grad.z/grad.mag);
+            } else {
+                VectorMath.setVector(normalVec,grad.x, grad.y, grad.z);
+            }
+            double[] V = new double[3];
+            VectorMath.setVector(V, -viewVec[0]/VectorMath.length(viewVec), -viewVec[1]/VectorMath.length(viewVec), -viewVec[2]/VectorMath.length(viewVec));
+            double LN = Math.abs(VectorMath.dotproduct(normalVec, V));
+            /*System.out.println("aaaaa");
+            System.out.println(grad.mag);
+            System.out.println(normalVec[0]+ " "+normalVec[1]+ " "+normalVec[2]);
+            System.out.println(V[0]+ " "+V[1]+ " "+V[2]);*/
+            //System.out.println(LN);
+            double Iadd = Iamb*kamb+kspec*Math.pow(LN, alpha);
+            double Imult = kdiff*LN;
+            voxelColor.r = Iadd + Imult*voxelColor.r;
+            voxelColor.g = Iadd+ Imult*voxelColor.g;
+            voxelColor.b = Iadd + Imult*voxelColor.b;
         }
-        double[] V = new double[3];
-        VectorMath.setVector(V, -viewVec[0]/VectorMath.length(viewVec), -viewVec[1]/VectorMath.length(viewVec), -viewVec[2]/VectorMath.length(viewVec));
-        double LN = Math.abs(VectorMath.dotproduct(normalVec, V));
-        /*System.out.println("aaaaa");
-        System.out.println(grad.mag);
-        System.out.println(normalVec[0]+ " "+normalVec[1]+ " "+normalVec[2]);
-        System.out.println(V[0]+ " "+V[1]+ " "+V[2]);*/
-        //System.out.println(LN);
-        double Iadd = Iamb*kamb+kspec*Math.pow(LN, alpha);
-        double Imult = kdiff*LN;
-        voxelColor.r = Iadd + Imult*voxelColor.r;
-        voxelColor.g = Iadd+ Imult*voxelColor.g;
-        voxelColor.b = Iadd + Imult*voxelColor.b;
-        
     }
     
     private void transformationFunction(int val, VoxelGradient grad, TFColor acumVoxelColor, double[] viewVec) {
