@@ -403,18 +403,20 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     private void transformationFunction(int val, VoxelGradient grad, TFColor acumVoxelColor, double[] viewVec) {
         short fv = tfEditor2D.triangleWidget.baseIntensity;
         double r = tfEditor2D.triangleWidget.radius;
+        double top = tfEditor2D.triangleWidget.top;
+        double bottom = tfEditor2D.triangleWidget.bottom;
         TFColor color = tfEditor2D.triangleWidget.color;
         TFColor voxelColor = new TFColor(color.r,color.g,color.b,0);
         double alphav = color.a;
         
         double alpha = 0;
-        
-        if(grad.mag == 0 && val == fv) {
-            alpha = 1;
-        } else if(grad.mag>0 && val-r*grad.mag<=fv && val+r*grad.mag>=fv){
-            alpha = 1-(1/r)*Math.abs(fv-val)/grad.mag;
+        if(grad.mag <=top && grad.mag>=bottom) {
+            if(grad.mag == 0 && val == fv) {
+                alpha = 1;
+            } else if(grad.mag>0 && val-r*grad.mag<=fv && val+r*grad.mag>=fv){
+                alpha = 1-(1/r)*Math.abs(fv-val)/grad.mag;
+            }
         }
-        
         voxelColor.a = alphav*alpha;
         
         if(shadowing) {
