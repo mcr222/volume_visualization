@@ -19,6 +19,8 @@ import util.VectorMath;
 import volume.GradientVolume;
 import volume.Volume;
 import volume.VoxelGradient;
+import gui.TransferFunction2DEditor.TriangleWidget;
+
 
 /**
  *
@@ -401,11 +403,22 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     }
     
     private void transformationFunction(int val, VoxelGradient grad, TFColor acumVoxelColor, double[] viewVec) {
-        short fv = tfEditor2D.triangleWidget.baseIntensity;
-        double r = tfEditor2D.triangleWidget.radius;
-        double top = tfEditor2D.triangleWidget.top;
-        double bottom = tfEditor2D.triangleWidget.bottom;
-        TFColor color = tfEditor2D.triangleWidget.color;
+        TFColor voxelColor = this.color2DTriangle(tfEditor2D.triangleWidget, val, grad);
+        if(voxelColor.a==0) {
+            voxelColor = this.color2DTriangle(tfEditor2D.triangleWidget1, val, grad);
+        }
+        if(shadowing) {
+            addShadow(voxelColor,grad, viewVec);
+        }
+        accumulateColor(voxelColor, acumVoxelColor);
+    }
+    
+    private TFColor color2DTriangle(TriangleWidget triangle, int val, VoxelGradient grad){
+        short fv = triangle.baseIntensity;
+        double r = triangle.radius;
+        double top = triangle.top;
+        double bottom = triangle.bottom;
+        TFColor color = triangle.color;
         TFColor voxelColor = new TFColor(color.r,color.g,color.b,0);
         double alphav = color.a;
         
@@ -418,11 +431,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             }
         }
         voxelColor.a = alphav*alpha;
-        
-        if(shadowing) {
-            addShadow(voxelColor,grad, viewVec);
-        }
-        accumulateColor(voxelColor, acumVoxelColor);
+        return voxelColor;
     }
 
     private void drawBoundingBox(GL2 gl) {
