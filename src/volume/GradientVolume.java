@@ -23,7 +23,6 @@ public class GradientVolume {
     public VoxelGradient getGradient(int x, int y, int z) {
         return data[x + dimX * (y + dimY * z)];
     }
-
     
     public void setGradient(int x, int y, int z, VoxelGradient value) {
         data[x + dimX * (y + dimY * z)] = value;
@@ -83,14 +82,15 @@ public class GradientVolume {
         VoxelGradient grad;
         for (int x=0; x<dimX; x++) {
             for(int y=0;y<dimY;y++) {
-                for(int z=0;z<dimZ;z++) {                    
+                for(int z=0;z<dimZ;z++) {
                     grad = new VoxelGradient(computeXGrad(x,y,z),
                     computeYGrad(x,y,z),
-                    computeZGrad(x,y,z));
+                    computeZGrad(x,y,z));                 
                     setGradient(x, y, z, grad);
-                }
-            }
-        }        
+                }   
+            }            
+        } 
+        System.out.print(dimX+" "+dimY+" "+dimZ);
     }
     
     public double getMaxGradientMagnitude() {
