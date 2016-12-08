@@ -48,8 +48,9 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
         compositingButton = new javax.swing.JRadioButton();
         tf2dButton = new javax.swing.JRadioButton();
         shadingCheckbox = new javax.swing.JCheckBox();
-        jSlider1 = new javax.swing.JSlider();
         label2 = new java.awt.Label();
+        trilinearInterpolation = new javax.swing.JCheckBox();
+        samples = new javax.swing.JTextField();
 
         jLabel1.setText("Rendering time (ms):");
 
@@ -95,20 +96,23 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
             }
         });
 
-        jSlider1.setMajorTickSpacing(1);
-        jSlider1.setMaximum(20);
-        jSlider1.setMinimum(5);
-        jSlider1.setMinorTickSpacing(1);
-        jSlider1.setToolTipText("Resposivenes. Number of samples.");
-        jSlider1.setValue(10);
-        jSlider1.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                jSlider1StateChanged(evt);
+        label2.setFont(new java.awt.Font("Tahoma", 0, 11)); // NOI18N
+        label2.setText("Number of sampling points:");
+
+        trilinearInterpolation.setText("Trilinear interpolation");
+        trilinearInterpolation.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                trilinearInterpolationActionPerformed(evt);
             }
         });
 
-        label2.setFont(new java.awt.Font("Tahoma", 0, 11)); // NOI18N
-        label2.setText("Responsiveness (from 200 to 50 samples) :");
+        samples.setText("100");
+        samples.setToolTipText("Insert the number of samples");
+        samples.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                samplesActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -126,11 +130,14 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
                             .addComponent(compositingButton)
                             .addComponent(tf2dButton)
                             .addComponent(mipButton)
-                            .addComponent(slicerButton)
-                            .addComponent(shadingCheckbox)))
-                    .addComponent(label2, javax.swing.GroupLayout.PREFERRED_SIZE, 227, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jSlider1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(252, Short.MAX_VALUE))
+                            .addComponent(shadingCheckbox)
+                            .addComponent(trilinearInterpolation)
+                            .addComponent(slicerButton)))
+                    .addComponent(label2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(10, 10, 10)
+                        .addComponent(samples, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(250, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -142,8 +149,8 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
                 .addGap(1, 1, 1)
                 .addComponent(label2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jSlider1, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(samples, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(10, 10, 10)
                 .addComponent(slicerButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(mipButton)
@@ -151,12 +158,12 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
                 .addComponent(compositingButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(tf2dButton)
-                .addGap(27, 27, 27)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(trilinearInterpolation)
+                .addGap(4, 4, 4)
                 .addComponent(shadingCheckbox)
                 .addContainerGap(118, Short.MAX_VALUE))
         );
-
-        jSlider1.getAccessibleContext().setAccessibleName("Responsiveness");
     }// </editor-fold>//GEN-END:initComponents
 
     private void mipButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mipButtonActionPerformed
@@ -179,22 +186,36 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
         renderer.changeShadowing();
     }//GEN-LAST:event_shadingCheckboxActionPerformed
     
-    private void jSlider1StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSlider1StateChanged
-        int value=jSlider1.getValue();
-        renderer.setSamples(value);
+    private void trilinearInterpolationActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_trilinearInterpolationActionPerformed
+        renderer.changeInterpolation();
 // TODO add your handling code here:
-    }//GEN-LAST:event_jSlider1StateChanged
+    }//GEN-LAST:event_trilinearInterpolationActionPerformed
+
+    private void samplesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_samplesActionPerformed
+        try{// TODO add your handling code here:
+            int intnum = Integer.parseInt(samples.getText());
+            if(intnum<1 || intnum>10000 ) {
+                intnum = 100;
+                samples.setText("100");
+            }
+            renderer.setSamples(intnum);
+        }
+        catch(NumberFormatException e){
+            samples.setText("100");
+        }
+    }//GEN-LAST:event_samplesActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JRadioButton compositingButton;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JSlider jSlider1;
     private java.awt.Label label2;
     private javax.swing.JRadioButton mipButton;
     private javax.swing.JLabel renderingSpeedLabel;
+    private javax.swing.JTextField samples;
     private javax.swing.JCheckBox shadingCheckbox;
     private javax.swing.JRadioButton slicerButton;
     private javax.swing.JRadioButton tf2dButton;
+    private javax.swing.JCheckBox trilinearInterpolation;
     // End of variables declaration//GEN-END:variables
 }
