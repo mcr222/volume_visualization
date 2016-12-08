@@ -214,9 +214,31 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         int xf = (int) Math.floor(coord[0]);
         int yf = (int) Math.floor(coord[1]);
         int zf = (int) Math.floor(coord[2]);
+        int xc = (int) Math.ceil(coord[0]);
+        int yc = (int) Math.ceil(coord[1]);
+        int zc = (int) Math.ceil(coord[2]);
+        float alpha=(float)(coord[0]-xf);
+        float beta=(float)(coord[1]-yf);
+        float gamma=(float)(coord[2]-zf);
         
         try {
-            return this.gradients.getGradient(xf,yf,zf);
+            VoxelGradient valx0=gradients.getGradient(xf,yf,zf);
+            VoxelGradient valx1=gradients.getGradient(xc,yf,zf);
+            VoxelGradient valx2=gradients.getGradient(xf,yc,zf);
+            VoxelGradient valx3=gradients.getGradient(xc,yc,zf);
+            VoxelGradient valx4=gradients.getGradient(xf,yf,zc);
+            VoxelGradient valx5=gradients.getGradient(xc,yf,zc);
+            VoxelGradient valx6=gradients.getGradient(xf,yc,zc);
+            VoxelGradient valx7=gradients.getGradient(xc,yc,zc);
+            
+            float gradx =  this.interpolateValue(alpha, beta, gamma,
+                    valx0.x, valx1.x, valx2.x, valx3.x, valx4.x, valx5.x, valx6.x, valx7.x);
+            float grady =  this.interpolateValue(alpha, beta, gamma,
+                    valx0.y, valx1.y, valx2.y, valx3.y, valx4.y, valx5.y, valx6.y, valx7.y);
+            float gradz =  this.interpolateValue(alpha, beta, gamma,
+                    valx0.z, valx1.z, valx2.z, valx3.z, valx4.z, valx5.z, valx6.z, valx7.z);
+            
+            return new VoxelGradient(gradx,grady,gradz);
         }catch(Exception e){
             return new VoxelGradient();
         }
@@ -233,9 +255,9 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         int xc = (int) Math.ceil(coord[0]);
         int yc = (int) Math.ceil(coord[1]);
         int zc = (int) Math.ceil(coord[2]);
-        double alpha=(coord[0]-xf);
-        double beta=(coord[1]-yf);
-        double gamma=(coord[2]-zf);
+        float alpha=(float)(coord[0]-xf);
+        float beta=(float)(coord[1]-yf);
+        float gamma=(float)(coord[2]-zf);
         try {
             short valx0=volume.getVoxel(xf,yf,zf);
             short valx1=volume.getVoxel(xc,yf,zf);
@@ -245,15 +267,21 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             short valx5=volume.getVoxel(xc,yf,zc);
             short valx6=volume.getVoxel(xf,yc,zc);
             short valx7=volume.getVoxel(xc,yc,zc);
-            double s=((1-alpha)*(1-beta)*(1-gamma)*valx0)+((alpha)*(1-beta)*(1-gamma)*valx1)
-                +((1-alpha)*(beta)*(1-gamma)*valx2)+((alpha)*(beta)*(1-gamma)*valx3)
-                +((1-alpha)*(1-beta)*(gamma)*valx4)+((alpha)*(1-beta)*(gamma)*valx5)
-                +((1-alpha)*(beta)*(gamma)*valx6)+((alpha)*(beta)*(gamma)*valx7);    
+            double s =  this.interpolateValue(alpha, beta, gamma,
+                    valx0, valx1, valx2, valx3, valx4, valx5, valx6, valx7);
             return (short) s;
         }catch(Exception e){
             return 0;
         }
     }
+            
+    private float interpolateValue(float alpha, float beta, float gamma
+    ,float valx0, float valx1, float valx2, float valx3, float valx4, float valx5, float valx6, float valx7){
+        return ((1-alpha)*(1-beta)*(1-gamma)*valx0)+((alpha)*(1-beta)*(1-gamma)*valx1)
+                +((1-alpha)*(beta)*(1-gamma)*valx2)+((alpha)*(beta)*(1-gamma)*valx3)
+                +((1-alpha)*(1-beta)*(gamma)*valx4)+((alpha)*(1-beta)*(gamma)*valx5)
+                +((1-alpha)*(beta)*(gamma)*valx6)+((alpha)*(beta)*(gamma)*valx7);  
+    }     
     
     private double[] computeImageCenter(double[] uVec, double[] vVec, int i, int j){
         int imageCenter = image.getWidth() / 2;
