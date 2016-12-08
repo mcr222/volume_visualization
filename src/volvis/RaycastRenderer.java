@@ -36,8 +36,9 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     TransferFunction tFunc;
     TransferFunctionEditor tfEditor;
     TransferFunction2DEditor tfEditor2D;
-    float samples=10; // this is the responsiveness variable
+    float samples=100; // this is the responsiveness variable
     private Timer timer = null;
+    boolean interpolation;
     
     public enum raycastModes {
         slicer,mip,compositing, transformationfunct
@@ -51,10 +52,11 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         shadowing = false;
         panel = new RaycastRendererPanel(this);
         panel.setSpeedLabel("0");
+        interpolation=false;
     }
     
-    public void setSamples(float kspacing) {
-        this.samples=kspacing;
+    public void setSamples(int samples) {
+        this.samples=samples;
         updateVis();
     }
     
@@ -67,7 +69,10 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         this.shadowing = !shadowing;
         updateVis();
     }
-    
+    public void changeInterpolation() {
+        this.interpolation = !interpolation;
+        updateVis();
+    }
     public void setVolume(Volume vol) {
         System.out.println("Assigning volume");
         volume = vol;
@@ -248,8 +253,13 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             double s=((1-alpha)*(1-beta)*(1-gamma)*valx0)+((alpha)*(1-beta)*(1-gamma)*valx1)
                 +((1-alpha)*(beta)*(1-gamma)*valx2)+((alpha)*(beta)*(1-gamma)*valx3)
                 +((1-alpha)*(1-beta)*(gamma)*valx4)+((alpha)*(1-beta)*(gamma)*valx5)
-                +((1-alpha)*(beta)*(gamma)*valx6)+((alpha)*(beta)*(gamma)*valx7);    
-            return (short) s;
+                +((1-alpha)*(beta)*(gamma)*valx6)+((alpha)*(beta)*(gamma)*valx7);
+            if (interpolation){
+                return (short) s;
+            }
+            else{
+                return valx0;
+            }
         }catch(Exception e){
             return 0;
         }
@@ -329,7 +339,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         voxelColor.g=0;
         voxelColor.b=0;
         pointsInLine = new PointsInLine(viewVec,uVec,vVec,i,j);
-        float kspacing=(float)samples/(float)1000;
+        float kspacing=(float)1/samples;
         max_val = 0;
         while(pointsInLine.isThereIntersection() &&  k<1) {
             val = pointsInLine.getValPointInLine(k);
