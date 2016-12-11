@@ -41,7 +41,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     boolean interpolation;
     
     public enum raycastModes {
-        slicer,mip,compositing, transformationfunct
+        slicer,mip,compositing, transferFunction2D
     }
     private raycastModes raycastMode;
     private boolean shadowing;
@@ -375,8 +375,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 max_val = MIP(val, max_val, voxelColor);
             } else if (raycastMode == raycastModes.compositing) {
                 compositing(val, voxelColor);
-            } else if(raycastMode == raycastModes.transformationfunct) {
-                transformationFunction(val, grad, voxelColor, viewVec);
+            } else if(raycastMode == raycastModes.transferFunction2D) {
+                transferFunction2D(val, grad, voxelColor, viewVec);
             }
             k=k+kspacing;
             
@@ -439,7 +439,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         }
     }
     
-    private void transformationFunction(int val, VoxelGradient grad, TFColor acumVoxelColor, double[] viewVec) {
+    private void transferFunction2D(int val, VoxelGradient grad, TFColor acumVoxelColor, double[] viewVec) {
         TFColor voxelColor = this.color2DTriangle(tfEditor2D.triangleWidget, val, grad);
         if(voxelColor.a==0) {
             voxelColor = this.color2DTriangle(tfEditor2D.triangleWidget1, val, grad);

@@ -179,7 +179,7 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_compositingButtonActionPerformed
 
     private void tf2dButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tf2dButtonActionPerformed
-        renderer.setRaycastMode(RaycastRenderer.raycastModes.transformationfunct);
+        renderer.setRaycastMode(RaycastRenderer.raycastModes.transferFunction2D);
     }//GEN-LAST:event_tf2dButtonActionPerformed
 
     private void shadingCheckboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_shadingCheckboxActionPerformed

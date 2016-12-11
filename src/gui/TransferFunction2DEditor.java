@@ -49,7 +49,7 @@ public class TransferFunction2DEditor extends javax.swing.JPanel {
         labelMaxVal.setText(Integer.toString(maxIntensity));
 
         triangleWidget = new TriangleWidget((short) (maxIntensity / 4), 0.2, maxGradientMagnitude/2+1,maxGradientMagnitude/2-1);
-        triangleWidget1 = new TriangleWidget((short) (3*maxIntensity / 4), 0.2, maxGradientMagnitude/2+1,maxGradientMagnitude/2-1);
+        triangleWidget1 = new TriangleWidget((short) (3*maxIntensity / 4), 0.6, maxGradientMagnitude/2+1,maxGradientMagnitude/2-1);
         
         setSelectedInfo();
         
